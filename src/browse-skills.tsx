@@ -64,21 +64,14 @@ npx skills add ${skill.topSource}
       metadata={
         <Detail.Metadata>
           <Detail.Metadata.Label title="Name" text={skill.name} />
-          <Detail.Metadata.Label
-            title="Installs"
-            text={formatInstalls(skill.installs)}
-            icon={Icon.Download}
-          />
+          <Detail.Metadata.Label title="Installs" text={formatInstalls(skill.installs)} icon={Icon.Download} />
           <Detail.Metadata.Link
             title="Repository"
             target={`https://github.com/${skill.topSource}`}
             text={skill.topSource}
           />
           <Detail.Metadata.Separator />
-          <Detail.Metadata.Label
-            title="Install Command"
-            text={`npx skills add ${skill.topSource}`}
-          />
+          <Detail.Metadata.Label title="Install Command" text={`npx skills add ${skill.topSource}`} />
         </Detail.Metadata>
       }
       actions={
@@ -139,11 +132,7 @@ export default function Command() {
             accessories={[{ text: formatInstalls(skill.installs), icon: Icon.Download }]}
             actions={
               <ActionPanel>
-                <Action
-                  title="View Details"
-                  icon={Icon.Eye}
-                  onAction={() => setSelectedSkill(skill)}
-                />
+                <Action title="View Details" icon={Icon.Eye} onAction={() => setSelectedSkill(skill)} />
                 <Action.CopyToClipboard
                   title="Copy Install Command"
                   content={`npx skills add ${skill.topSource}`}
