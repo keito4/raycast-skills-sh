@@ -5,7 +5,9 @@
   "description": "Browse and search AI agent skills from skills.sh",
   "icon": "icon.png",
   "author": "keito4",
-  "categories": ["Developer Tools"],
+  "categories": [
+    "Developer Tools"
+  ],
   "license": "MIT",
   "commands": [
     {
@@ -28,10 +30,12 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
     "@raycast/eslint-config": "^1.0.11",
     "@types/node": "^20.8.10",
     "@types/react": "^18.3.4",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4"
   },
