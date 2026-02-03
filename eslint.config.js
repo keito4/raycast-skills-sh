@@ -1,10 +1,14 @@
-const eslint = require("@eslint/js");
-const tseslint = require("typescript-eslint");
+const { FlatCompat } = require("@eslint/eslintrc");
+const js = require("@eslint/js");
 
-module.exports = tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+});
+
+module.exports = [
+  ...compat.extends("@raycast"),
   {
     ignores: ["dist/**", "node_modules/**"],
-  }
-);
+  },
+];
