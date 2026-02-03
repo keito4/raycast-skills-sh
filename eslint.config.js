@@ -1,4 +1,14 @@
-const { defineConfig } = require("eslint/config");
-const raycastConfig = require("@raycast/eslint-config");
+const { FlatCompat } = require("@eslint/eslintrc");
+const js = require("@eslint/js");
 
-module.exports = defineConfig([...raycastConfig]);
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+});
+
+module.exports = [
+  ...compat.extends("@raycast"),
+  {
+    ignores: ["dist/**", "node_modules/**"],
+  },
+];
