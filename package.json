@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "skills-sh",
-  "title": "Skills.sh",
-  "description": "Browse and search AI agent skills from skills.sh",
+  "name": "skills",
+  "title": "Skills",
+  "description": "Browse and search AI agent skills from Skills",
   "icon": "icon.png",
   "author": "keito4",
   "categories": [
