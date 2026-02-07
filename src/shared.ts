@@ -1,0 +1,40 @@
+export type Skill = {
+  id: string;
+  skillId: string;
+  name: string;
+  installs: number;
+  source: string;
+};
+
+export type SearchResponse = {
+  query: string;
+  searchType: string;
+  skills: Skill[];
+  count: number;
+};
+
+export const API_BASE_URL = "https://skills.sh/api";
+export const REPO_URL = "https://github.com/keito4/raycast-skills-sh";
+
+export function formatInstalls(count: number): string {
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1)}K`;
+  }
+  return count.toString();
+}
+
+export function buildInstallCommand(skill: Skill): string {
+  return `npx skills add https://github.com/${skill.source} --skill ${skill.skillId}`;
+}
+
+export function getCompany(skill: Skill): string {
+  return skill.source.split("/")[0];
+}
+
+export function buildIssueUrl(endpoint: string, error: Error): string {
+  const title = encodeURIComponent(`[API Error] ${endpoint} request failed`);
+  const body = encodeURIComponent(
+    `## Error Details\n\n- **Endpoint:** \`${endpoint}\`\n- **Error:** ${error.message}\n- **Date:** ${new Date().toISOString()}\n`,
+  );
+  return `${REPO_URL}/issues/new?title=${title}&body=${body}`;
+}
