@@ -1,130 +1,70 @@
 import { List, ActionPanel, Action, Icon, Color, Detail } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-type Skill = {
-  id: string;
-  name: string;
-  installs: number;
-  topSource: string;
-};
+import { SkillDetail } from "./components/SkillDetail";
+import {
+  type SearchResponse,
+  API_BASE_URL,
+  formatInstalls,
+  buildInstallCommand,
+  buildIssueUrl,
+  getCompany,
+} from "./shared";
 
-type SkillsResponse = {
-  skills: Skill[];
-  hasMore: boolean;
-};
-
-const API_BASE_URL = "https://skills.sh/api/skills";
-
-function formatInstalls(count: number): string {
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}K`;
-  }
-  return count.toString();
-}
-
-function SkillDetail({ skill, onBack }: { skill: Skill; onBack: () => void }) {
-  const readmeUrl = `https://raw.githubusercontent.com/${skill.topSource}/main/README.md`;
-  const { data: readme, isLoading } = useFetch<string>(readmeUrl, {
-    parseResponse: (response) => response.text(),
-    failureToastOptions: { title: "" },
-    onError: () => {},
-  });
-
-  const fallbackReadmeUrl = `https://raw.githubusercontent.com/${skill.topSource}/master/README.md`;
-  const { data: fallbackReadme } = useFetch<string>(fallbackReadmeUrl, {
-    execute: !readme && !isLoading,
-    parseResponse: (response) => response.text(),
-    failureToastOptions: { title: "" },
-    onError: () => {},
-  });
-
-  const content = readme || fallbackReadme;
-
-  const markdown = content
-    ? content
-    : `# ${skill.name}
-
-**Repository:** [${skill.topSource}](https://github.com/${skill.topSource})
-
-**Installs:** ${formatInstalls(skill.installs)}
-
----
-
-\`\`\`bash
-npx skills add ${skill.topSource}
-\`\`\`
-`;
-
-  return (
-    <Detail
-      isLoading={isLoading}
-      markdown={markdown}
-      navigationTitle={skill.name}
-      metadata={
-        <Detail.Metadata>
-          <Detail.Metadata.Label title="Name" text={skill.name} />
-          <Detail.Metadata.Label title="Installs" text={formatInstalls(skill.installs)} icon={Icon.Download} />
-          <Detail.Metadata.Link
-            title="Repository"
-            target={`https://github.com/${skill.topSource}`}
-            text={skill.topSource}
-          />
-          <Detail.Metadata.Separator />
-          <Detail.Metadata.Label title="Install Command" text={`npx skills add ${skill.topSource}`} />
-        </Detail.Metadata>
-      }
-      actions={
-        <ActionPanel>
-          <Action.CopyToClipboard
-            title="Copy Install Command"
-            content={`npx skills add ${skill.topSource}`}
-            icon={Icon.Terminal}
-          />
-          <Action.OpenInBrowser
-            title="Open Repository"
-            url={`https://github.com/${skill.topSource}`}
-            icon={Icon.Globe}
-          />
-          <Action.CopyToClipboard
-            title="Copy Skill Name"
-            content={skill.name}
-            shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-          />
-          <Action
-            title="Back to List"
-            icon={Icon.ArrowLeft}
-            onAction={onBack}
-            shortcut={{ modifiers: ["cmd"], key: "backspace" }}
-          />
-        </ActionPanel>
-      }
-    />
-  );
-}
+const BROWSE_URL = `${API_BASE_URL}/search?q=skill&limit=50`;
 
 export default function Command() {
-  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const [company, setCompany] = useState("all");
 
-  const { data, isLoading } = useFetch<SkillsResponse>(API_BASE_URL, {
+  const { data, isLoading, error, revalidate } = useFetch<SearchResponse>(BROWSE_URL, {
     keepPreviousData: true,
   });
 
-  const skills = data?.skills ?? [];
+  const allSkills = data?.skills ?? [];
+  const companies = useMemo(() => [...new Set(allSkills.map(getCompany))].sort(), [allSkills]);
+  const skills = company === "all" ? allSkills : allSkills.filter((s) => getCompany(s) === company);
 
-  if (selectedSkill) {
-    return <SkillDetail skill={selectedSkill} onBack={() => setSelectedSkill(null)} />;
+  if (error && !data) {
+    return (
+      <Detail
+        markdown={`# API Error\n\nFailed to fetch data from the skills.sh API.\n\n**Error:** ${error.message}\n\n---\n\nIf the problem persists, please report it via **Report Issue on GitHub**.`}
+        actions={
+          <ActionPanel>
+            <Action title="Clear Cache & Retry" onAction={revalidate} icon={Icon.RotateClockwise} />
+            <Action.OpenInBrowser
+              title="Report Issue on GitHub"
+              url={buildIssueUrl(BROWSE_URL, error)}
+              icon={Icon.Bug}
+            />
+          </ActionPanel>
+        }
+      />
+    );
   }
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Filter skills...">
-      <List.Section title="All Time Ranking" subtitle={`${skills.length} skills`}>
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder="Filter skills..."
+      searchBarAccessory={
+        <List.Dropdown tooltip="Filter by Company" storeValue onChange={setCompany}>
+          <List.Dropdown.Item title="All Companies" value="all" />
+          <List.Dropdown.Section title="Companies">
+            {companies.map((c) => (
+              <List.Dropdown.Item key={c} title={c} value={c} />
+            ))}
+          </List.Dropdown.Section>
+        </List.Dropdown>
+      }
+    >
+      <List.Section title="Popular Skills" subtitle={`${skills.length} skills`}>
         {skills.map((skill, index) => (
           <List.Item
             key={skill.id}
             title={`#${index + 1} ${skill.name}`}
-            subtitle={skill.topSource}
-            keywords={[skill.name, skill.topSource, skill.id]}
+            subtitle={skill.source}
+            keywords={[skill.name, skill.source, skill.id]}
             icon={{
               source: Icon.Trophy,
               tintColor: index < 3 ? Color.Yellow : Color.SecondaryText,
@@ -132,20 +72,20 @@ export default function Command() {
             accessories={[{ text: formatInstalls(skill.installs), icon: Icon.Download }]}
             actions={
               <ActionPanel>
-                <Action title="View Details" icon={Icon.Eye} onAction={() => setSelectedSkill(skill)} />
+                <Action.Push title="View Details" icon={Icon.Eye} target={<SkillDetail skill={skill} />} />
                 <Action.CopyToClipboard
                   title="Copy Install Command"
-                  content={`npx skills add ${skill.topSource}`}
+                  content={buildInstallCommand(skill)}
                   icon={Icon.Terminal}
                   shortcut={{ modifiers: ["cmd"], key: "c" }}
                 />
                 <Action.OpenInBrowser
                   title="Open Repository"
-                  url={`https://github.com/${skill.topSource}`}
+                  url={`https://github.com/${skill.source}`}
                   icon={Icon.Globe}
                 />
                 <Action.OpenInBrowser
-                  title="Open skills.sh"
+                  title="Open Skills.sh"
                   url="https://skills.sh/"
                   icon={Icon.Link}
                   shortcut={{ modifiers: ["cmd"], key: "o" }}
