@@ -80,8 +80,7 @@ export function useDebouncedSearch(searchText: string, delay = 300) {
     }
   }, [searchText, fetchSkills]);
 
-  const searchUrl =
-    searchText.length >= 2 ? `${API_BASE_URL}/search?q=${encodeURIComponent(searchText)}&limit=50` : "";
+  const searchUrl = searchText.length >= 2 ? `${API_BASE_URL}/search?q=${encodeURIComponent(searchText)}&limit=50` : "";
 
   return { data, isLoading, error, revalidate, searchUrl };
 }
