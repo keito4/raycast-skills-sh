@@ -24,7 +24,14 @@ export default function Command() {
   });
 
   const allSkills = data?.skills ?? [];
-  const companies = useMemo(() => [...new Set(allSkills.map(getCompany))].sort(), [allSkills]);
+  const companyCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const s of allSkills) {
+      const c = getCompany(s);
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return new Map([...counts.entries()].sort(([a], [b]) => a.localeCompare(b)));
+  }, [allSkills]);
   const skills = company === "all" ? allSkills : allSkills.filter((s) => getCompany(s) === company);
 
   if (error && !data) {
@@ -55,8 +62,8 @@ export default function Command() {
         <List.Dropdown tooltip="Filter by Company" storeValue onChange={setCompany}>
           <List.Dropdown.Item title="All Companies" value="all" />
           <List.Dropdown.Section title="Companies">
-            {companies.map((c) => (
-              <List.Dropdown.Item key={c} title={c} value={c} />
+            {[...companyCounts.entries()].map(([c, count]) => (
+              <List.Dropdown.Item key={c} title={`${c} (${count})`} value={c} />
             ))}
           </List.Dropdown.Section>
         </List.Dropdown>

@@ -28,7 +28,7 @@ export function buildInstallCommand(skill: Skill): string {
 }
 
 export function getCompany(skill: Skill): string {
-  return skill.source.split("/")[0];
+  return (skill.source ?? "").split("/")[0];
 }
 
 export function buildIssueUrl(endpoint: string, error: Error): string {
