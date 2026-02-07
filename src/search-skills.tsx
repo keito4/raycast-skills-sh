@@ -1,27 +1,15 @@
-import { List, ActionPanel, Action, Icon, Color, Detail } from "@raycast/api";
-import { useFetch } from "@raycast/utils";
+import { List, ActionPanel, Action, Icon, Detail } from "@raycast/api";
 import { useMemo, useState } from "react";
 
-import { SkillDetail } from "./components/SkillDetail";
-import {
-  type SearchResponse,
-  API_BASE_URL,
-  formatInstalls,
-  buildInstallCommand,
-  buildIssueUrl,
-  getCompany,
-} from "./shared";
+import { SkillListItem } from "./components/SkillListItem";
+import { useDebouncedSearch } from "./hooks/useDebouncedSearch";
+import { buildIssueUrl, getCompany } from "./shared";
 
 export default function Command() {
   const [searchText, setSearchText] = useState("");
   const [company, setCompany] = useState("all");
 
-  const searchUrl = searchText.length >= 2 ? `${API_BASE_URL}/search?q=${encodeURIComponent(searchText)}&limit=50` : "";
-
-  const { data, isLoading, error, revalidate } = useFetch<SearchResponse>(searchUrl, {
-    execute: searchText.length >= 2,
-    keepPreviousData: true,
-  });
+  const { data, isLoading, error, revalidate, searchUrl } = useDebouncedSearch(searchText);
 
   const allSkills = data?.skills ?? [];
   const companyCounts = useMemo(() => {
@@ -37,7 +25,7 @@ export default function Command() {
   if (error && !data) {
     return (
       <Detail
-        markdown={`# API Error\n\nFailed to fetch data from the skills.sh API.\n\n**Error:** ${error.message}\n\n---\n\nIf the problem persists, please report it via **Report Issue on GitHub**.`}
+        markdown={`# API Error\n\nFailed to fetch data from the Skills API.\n\n**Error:** ${error.message}\n\n---\n\nIf the problem persists, please report it via **Report Issue on GitHub**.`}
         actions={
           <ActionPanel>
             <Action title="Clear Cache & Retry" onAction={revalidate} icon={Icon.RotateClockwise} />
@@ -57,7 +45,6 @@ export default function Command() {
       isLoading={isLoading}
       searchBarPlaceholder="Search skills..."
       onSearchTextChange={setSearchText}
-      throttle
       searchBarAccessory={
         <List.Dropdown tooltip="Filter by Company" storeValue onChange={setCompany}>
           <List.Dropdown.Item title="All Companies" value="all" />
@@ -79,33 +66,8 @@ export default function Command() {
         />
       ) : (
         <List.Section title={`Results for "${searchText}"`} subtitle={`${skills.length} skills`}>
-          {skills.map((skill, index) => (
-            <List.Item
-              key={skill.id}
-              title={skill.name}
-              subtitle={skill.source}
-              icon={{
-                source: Icon.MagnifyingGlass,
-                tintColor: index < 3 ? Color.Yellow : Color.Blue,
-              }}
-              accessories={[{ text: formatInstalls(skill.installs), icon: Icon.Download }]}
-              actions={
-                <ActionPanel>
-                  <Action.Push title="View Details" icon={Icon.Eye} target={<SkillDetail skill={skill} />} />
-                  <Action.CopyToClipboard
-                    title="Copy Install Command"
-                    content={buildInstallCommand(skill)}
-                    icon={Icon.Terminal}
-                    shortcut={{ modifiers: ["cmd"], key: "c" }}
-                  />
-                  <Action.OpenInBrowser
-                    title="Open Repository"
-                    url={`https://github.com/${skill.source}`}
-                    icon={Icon.Globe}
-                  />
-                </ActionPanel>
-              }
-            />
+          {skills.map((skill) => (
+            <SkillListItem key={skill.id} skill={skill} />
           ))}
         </List.Section>
       )}

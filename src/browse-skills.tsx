@@ -1,16 +1,9 @@
-import { List, ActionPanel, Action, Icon, Color, Detail } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, Detail } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
 import { useMemo, useState } from "react";
 
-import { SkillDetail } from "./components/SkillDetail";
-import {
-  type SearchResponse,
-  API_BASE_URL,
-  formatInstalls,
-  buildInstallCommand,
-  buildIssueUrl,
-  getCompany,
-} from "./shared";
+import { SkillListItem } from "./components/SkillListItem";
+import { type SearchResponse, API_BASE_URL, buildIssueUrl, getCompany } from "./shared";
 
 const BROWSE_URL = `${API_BASE_URL}/search?q=skill&limit=50`;
 
@@ -35,7 +28,7 @@ export default function Command() {
   if (error && !data) {
     return (
       <Detail
-        markdown={`# API Error\n\nFailed to fetch data from the skills.sh API.\n\n**Error:** ${error.message}\n\n---\n\nIf the problem persists, please report it via **Report Issue on GitHub**.`}
+        markdown={`# API Error\n\nFailed to fetch data from the Skills API.\n\n**Error:** ${error.message}\n\n---\n\nIf the problem persists, please report it via **Report Issue on GitHub**.`}
         actions={
           <ActionPanel>
             <Action title="Clear Cache & Retry" onAction={revalidate} icon={Icon.RotateClockwise} />
@@ -67,44 +60,7 @@ export default function Command() {
     >
       <List.Section title="Popular Skills" subtitle={`${skills.length} skills`}>
         {skills.map((skill, index) => (
-          <List.Item
-            key={skill.id}
-            title={`#${index + 1} ${skill.name}`}
-            subtitle={skill.source}
-            keywords={[skill.name, skill.source, skill.id]}
-            icon={{
-              source: Icon.Trophy,
-              tintColor: index < 3 ? Color.Yellow : Color.SecondaryText,
-            }}
-            accessories={[{ text: formatInstalls(skill.installs), icon: Icon.Download }]}
-            actions={
-              <ActionPanel>
-                <Action.Push title="View Details" icon={Icon.Eye} target={<SkillDetail skill={skill} />} />
-                <Action.CopyToClipboard
-                  title="Copy Install Command"
-                  content={buildInstallCommand(skill)}
-                  icon={Icon.Terminal}
-                  shortcut={{ modifiers: ["cmd"], key: "c" }}
-                />
-                <Action.OpenInBrowser
-                  title="Open Repository"
-                  url={`https://github.com/${skill.source}`}
-                  icon={Icon.Globe}
-                />
-                <Action.OpenInBrowser
-                  title="Open Skills.sh"
-                  url="https://skills.sh/"
-                  icon={Icon.Link}
-                  shortcut={{ modifiers: ["cmd"], key: "o" }}
-                />
-                <Action.CopyToClipboard
-                  title="Copy Skill Name"
-                  content={skill.name}
-                  shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                />
-              </ActionPanel>
-            }
-          />
+          <SkillListItem key={skill.id} skill={skill} rank={index + 1} />
         ))}
       </List.Section>
     </List>

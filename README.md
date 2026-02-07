@@ -1,6 +1,6 @@
-# Skills.sh
+# Skills
 
-Browse and search AI agent skills from [skills.sh](https://skills.sh) directly in Raycast.
+Browse and search AI agent skills from [Skills](https://skills.sh) directly in Raycast.
 
 ## Features
 
@@ -22,6 +22,6 @@ Search for specific AI agent skills.
 
 ## Screenshots
 
-![Browse Skills](metadata/skills-sh-1.png)
-![Skill Detail](metadata/skills-sh-2.png)
-![Search Skills](metadata/skills-sh-3.png)
+![Browse Skills](metadata/skills-1.png)
+![Skill Detail](metadata/skills-2.png)
+![Search Skills](metadata/skills-3.png)

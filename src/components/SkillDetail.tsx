@@ -57,7 +57,7 @@ ${buildInstallCommand(skill)}
           <Detail.Metadata.Label title="Installs" text={formatInstalls(skill.installs)} icon={Icon.Download} />
           <Detail.Metadata.Link title="Repository" target={`https://github.com/${skill.source}`} text={skill.source} />
           <Detail.Metadata.Link
-            title="Skills.sh"
+            title="Skills"
             target={`https://skills.sh/${skill.source}/${skill.skillId}`}
             text={`${skill.source}/${skill.skillId}`}
           />
@@ -74,7 +74,7 @@ ${buildInstallCommand(skill)}
           />
           <Action.OpenInBrowser title="Open Repository" url={`https://github.com/${skill.source}`} icon={Icon.Globe} />
           <Action.OpenInBrowser
-            title="Open Skills.sh"
+            title="Open Skills"
             url={`https://skills.sh/${skill.source}/${skill.skillId}`}
             icon={Icon.Link}
             shortcut={{ modifiers: ["cmd"], key: "o" }}
